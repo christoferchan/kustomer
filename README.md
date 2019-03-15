@@ -1,3 +1,5 @@
+![Kustomer](images/kustomer-logo.png)<br>
+
 # Kustomer - Import Data Problem
 
 Task: Import customer information from a google spreadsheet into Kustomer using Kustomers APIs.
@@ -7,9 +9,7 @@ Task: Import customer information from a google spreadsheet into Kustomer using 
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### Before we start
-
-Thing we'll need
+### Thing we'll need
 
 - Node.js installed(also installs npm)
 - credentials.json file
@@ -60,6 +60,8 @@ To start the application, enter this in your terminal
 node index.js
 ```
 The first time you run the application, it will prompt you to authorize access:
+
+![Auth](images/auth.png)
 
 1. Browse to the provided URL in your web browser.
 
