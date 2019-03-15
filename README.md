@@ -43,6 +43,10 @@ If you downloaded your own credentials.json file, you will need to include it in
 
 ### Installing dependencies
 
+Dependecies
+- Request
+- GoogleAPI
+
 To install dependencies, type the following command in your terminal<br/>
 *note: make sure you're in the correct directory*
 
