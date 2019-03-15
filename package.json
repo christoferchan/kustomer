@@ -17,10 +17,9 @@
     "url": "https://github.com/GenghisChan/kustomer/issues"
   },
   "homepage": "https://github.com/GenghisChan/kustomer#readme",
-  "devDependencies": {
-    "request": "^2.88.0"
-  },
+  "devDependencies": {},
   "dependencies": {
-    "googleapis": "^27.0.0"
+    "googleapis": "^27.0.0",
+    "request": "^2.88.0"
   }
 }
