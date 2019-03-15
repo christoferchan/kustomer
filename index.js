@@ -2,11 +2,9 @@ const fs = require('fs');
 const readline = require('readline');
 const path = require('path');
 const request = require('request');
-const fetch = require('node-fetch')
 const {
   google
 } = require('googleapis');
-let obj;
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
@@ -44,7 +42,6 @@ function authorize(credentials, callback) {
     callback(oAuth2Client);
   });
 }
-
 
 /**
  * Get and store new token after prompting for user authorization, and then
@@ -85,15 +82,19 @@ function getNewToken(oAuth2Client, callback) {
 
 
 async function postUsers(auth) {
-  const rows = await migrateUsers(auth)
-  const users = await usersToJSON(rows)
-  users.map(user => console.log(user))
+  try {
+      const rows = await migrateUsers(auth)
+      const users = await usersToJSON(rows)
+      users.forEach(user => console.log(user))
+  } catch(e) {
+      console.log(e)
+  }
   
   // request({
   //   url: "https://api.kustomerapp.com/v1/customers",
   //   method: "POST",
   //   headers: {
-  //     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjODlmODlkM2M1ZDc0MDA5NTkzMjE1YyIsInVzZXIiOiI1Yzg5Zjg5ZDg4NTA4MDAwMWFlYjExZDkiLCJvcmciOiI1Yzg5NWQwMGI5Yzc0MTAwMWE4OTNhODEiLCJvcmdOYW1lIjoienp6LWNocmlzdG9mZXIiLCJ1c2VyVHlwZSI6Im1hY2hpbmUiLCJyb2xlcyI6WyJvcmcudXNlci5jdXN0b21lci5yZWFkIiwib3JnLnVzZXIuY3VzdG9tZXIud3JpdGUiXSwiZXhwIjoxNTUzMTUwNzQ4LCJhdWQiOiJ1cm46Y29uc3VtZXIiLCJpc3MiOiJ1cm46YXBpIiwic3ViIjoiNWM4OWY4OWQ4ODUwODAwMDFhZWIxMWQ5In0.x7IsXllbiPfMXzB7Gr4Y6zv7DUk7jtdf81sgq3CmAiQ'
+  //     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGIzNTQ2YTQ0OWNjMDA5Njk1NWNkNSIsInVzZXIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQiLCJvcmciOiI1Yzg5NWQwMGI5Yzc0MTAwMWE4OTNhODEiLCJvcmdOYW1lIjoienp6LWNocmlzdG9mZXIiLCJ1c2VyVHlwZSI6Im1hY2hpbmUiLCJyb2xlcyI6WyJvcmcuYWRtaW4iLCJvcmcudXNlciJdLCJleHAiOjE1NTMyMzE4MTMsImF1ZCI6InVybjpjb25zdW1lciIsImlzcyI6InVybjphcGkiLCJzdWIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQifQ.L5pq9q9AKJimySHIcZXWNZCQWtvscKxL7u6V-hdUkSU'
   //   },
   //   json: true,
   //   body: {
@@ -104,18 +105,17 @@ async function postUsers(auth) {
   // })
 }
 
-
 function migrateUsers(auth) {
+  const sheets = google.sheets({
+    version: 'v4',
+    auth
+  });
   return new Promise((resolve, reject) => {
-    const sheets = google.sheets({
-      version: 'v4',
-      auth
-    });
     sheets.spreadsheets.values.get({
       spreadsheetId: '1FPYh5c8LY70TlJAS5X2oHASfNWbKPeQEBtTD13y6YEY',
-      range: 'Data!A3:G',
+      range: 'Data!A2:G',
     }, (err, res) => {
-      if (err) return console.log('The API returned an error: ' + err);
+      if (err) reject(new Error(err.message));
       const rows = res.data.values;
       resolve(rows)
     })
@@ -124,14 +124,17 @@ function migrateUsers(auth) {
     
 function usersToJSON(rows) {
   let customers = []
-     if (rows.length) {
+  const regex = /(\W\w{2};?)(\w+@\w+\.com)(\W\w+;?$)/g
+  return new Promise((resolve, reject) => {
+    if (rows.length) {
 
       // Creates json object for each row in columns A-G
       rows.forEach((row) => {
         let info = { name: `${row[0]} ${row[1]}`, email: [], birthday: null, phones: []}
+
         if(row[2].length > 0) {
           info["email"].push({
-            email: row[2]
+            email: row[2].replace(regex, "$2")
           })
         }
     
@@ -163,9 +166,8 @@ function usersToJSON(rows) {
         })
       });
     } else {
-      console.log('No data found.');
+      reject(new Error('No data found.'));
     }
-  return new Promise((resolve, reject) => {
     resolve(customers)
   })
 }
