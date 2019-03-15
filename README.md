@@ -14,7 +14,7 @@ Thing we'll need
 - Node.js installed(also installs npm)
 - credentials.json file
 
-You can download Node by following this link
+You can download Node.js by following this link
 
 ```
 https://nodejs.org/en/
