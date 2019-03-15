@@ -17,7 +17,7 @@ const TOKEN_PATH = 'token.json';
 fs.readFile('credentials.json', (err, content) => {
   if (err) return console.log('Error loading client secret file:', err);
   // Authorize a client with credentials, then call the Google Sheets API.
-  authorize(JSON.parse(content), postUsers);
+  authorize(JSON.parse(content), run);
 });
 
 /**
@@ -81,28 +81,37 @@ function getNewToken(oAuth2Client, callback) {
  */
 
 
-async function postUsers(auth) {
+async function run(auth) {
   try {
       const rows = await migrateUsers(auth)
       const users = await usersToJSON(rows)
-      users.forEach(user => console.log(user))
-  } catch(e) {
-      console.log(e)
+      for(const user in users) {
+        console.log(users[user])
+      }
+      // for(const user in users) {
+      //   const result = await postUsers(users[user])
+      //   console.log(result)
+      // }
+    } catch(e) {
+        console.log(e)
   }
-  
-  // request({
-  //   url: "https://api.kustomerapp.com/v1/customers",
-  //   method: "POST",
-  //   headers: {
-  //     'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGIzNTQ2YTQ0OWNjMDA5Njk1NWNkNSIsInVzZXIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQiLCJvcmciOiI1Yzg5NWQwMGI5Yzc0MTAwMWE4OTNhODEiLCJvcmdOYW1lIjoienp6LWNocmlzdG9mZXIiLCJ1c2VyVHlwZSI6Im1hY2hpbmUiLCJyb2xlcyI6WyJvcmcuYWRtaW4iLCJvcmcudXNlciJdLCJleHAiOjE1NTMyMzE4MTMsImF1ZCI6InVybjpjb25zdW1lciIsImlzcyI6InVybjphcGkiLCJzdWIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQifQ.L5pq9q9AKJimySHIcZXWNZCQWtvscKxL7u6V-hdUkSU'
-  //   },
-  //   json: true,
-  //   body: {
-  //     "name": "Chris Chan"
-  //   }
-  // }, (err, res, body) => {
-  //   console.log(body)
-  // })
+}
+
+function postUsers(user) {
+    return new Promise((resolve, reject) => {
+      request({
+          url: "https://api.kustomerapp.com/v1/customers",
+          method: "POST",
+          headers: {
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGIzNTQ2YTQ0OWNjMDA5Njk1NWNkNSIsInVzZXIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQiLCJvcmciOiI1Yzg5NWQwMGI5Yzc0MTAwMWE4OTNhODEiLCJvcmdOYW1lIjoienp6LWNocmlzdG9mZXIiLCJ1c2VyVHlwZSI6Im1hY2hpbmUiLCJyb2xlcyI6WyJvcmcuYWRtaW4iLCJvcmcudXNlciJdLCJleHAiOjE1NTMyMzE4MTMsImF1ZCI6InVybjpjb25zdW1lciIsImlzcyI6InVybjphcGkiLCJzdWIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQifQ.L5pq9q9AKJimySHIcZXWNZCQWtvscKxL7u6V-hdUkSU'
+          },
+          json: true,
+          body: user
+    }, (err, res, body) => {
+        if(err) reject(new Error(err.message));
+        resolve(body)
+    })
+    })
 }
 
 function migrateUsers(auth) {
