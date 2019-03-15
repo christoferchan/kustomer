@@ -14,7 +14,7 @@ Thing we'll need
 - Node.js installed(also installs npm)
 - credentials.json file
 
-You can download Node.js by following this link
+You can download Node.js by following this link and follow their instructions on the site
 
 ```
 https://nodejs.org/en/
@@ -32,6 +32,12 @@ If you would like to use your own credentials visit:
 ```
 https://developers.google.com/sheets/api/quickstart/nodejs
 ```
+
+![Enable](images/Enable.png)
+
+Once you click enable, a pop-up will appear where you can then copy or download your credentials
+
+![credentials](images/credentials.png)
 
 If you downloaded your own credentials.json file, you will need to include it in the project folder.
 
@@ -73,3 +79,7 @@ https://api.kustomerapp.com/v1/customers
 
 * [Request](https://www.npmjs.com/package/request) - Simplified HTTP client
 * [GoogleAPI](https://developers.google.com/sheets/api/quickstart/nodejs) - GoogleSheets API
+
+## Thank you
+
+Thank you for the opportunity to take this code challenge!
