@@ -20,7 +20,7 @@ You can download Node.js by following this link and follow their instructions on
 https://nodejs.org/en/
 ```
 
-Once Node.js is installed you can verify by entering this in your terminal
+Once Node.js is installed you can verify by entering this in your terminal to verify installation
 
 ```
 node --version && npm --version
