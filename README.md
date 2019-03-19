@@ -26,7 +26,7 @@ Once Node.js is installed you can verify by entering this in your terminal
 node --version && npm --version
 ```
 
-I've included a credentials.json which created a new Cloud Platform project and automatically enable the Google Sheets API:
+I've included a credentials.json file which creates a new Cloud Platform project and automatically enable the Google Sheets API:
 
 If you would like to use your own credentials visit:
 ```
