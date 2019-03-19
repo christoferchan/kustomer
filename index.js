@@ -82,38 +82,44 @@ function getNewToken(oAuth2Client, callback) {
 
 
 async function run(auth) {
+
+  let count = 0
+  let error = 0
+
   try {
-      const rows = await migrateUsers(auth)
-      const users = await usersToJSON(rows)
-      for(const user in users) {
-        console.log(users[user])
-      }
-      // for(const user in users) {
-      //   const result = await postUsers(users[user])
-      //   console.log(result)
-      // }
-    } catch(e) {
-        console.log(e)
+    const rows = await migrateUsers(auth)
+    const users = await usersToObj(rows)
+
+    for (const user in users) {
+      const result = await postUsers(users[user])
+      console.log(result)
+      count += 1
+    }
+  } catch (e) {
+    console.log(e)
   }
+  console.log("Total Users Added: ", count)
+  console.log("Number of Errors: ", error)
 }
 
 function postUsers(user) {
-    return new Promise((resolve, reject) => {
-      request({
-          url: "https://api.kustomerapp.com/v1/customers",
-          method: "POST",
-          headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGIzNTQ2YTQ0OWNjMDA5Njk1NWNkNSIsInVzZXIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQiLCJvcmciOiI1Yzg5NWQwMGI5Yzc0MTAwMWE4OTNhODEiLCJvcmdOYW1lIjoienp6LWNocmlzdG9mZXIiLCJ1c2VyVHlwZSI6Im1hY2hpbmUiLCJyb2xlcyI6WyJvcmcuYWRtaW4iLCJvcmcudXNlciJdLCJleHAiOjE1NTMyMzE4MTMsImF1ZCI6InVybjpjb25zdW1lciIsImlzcyI6InVybjphcGkiLCJzdWIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQifQ.L5pq9q9AKJimySHIcZXWNZCQWtvscKxL7u6V-hdUkSU'
-          },
-          json: true,
-          body: user
+  return new Promise((resolve, reject) => {
+    request({
+      url: "https://api.kustomerapp.com/v1/customers",
+      method: "POST",
+      headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVjOGIzNTQ2YTQ0OWNjMDA5Njk1NWNkNSIsInVzZXIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQiLCJvcmciOiI1Yzg5NWQwMGI5Yzc0MTAwMWE4OTNhODEiLCJvcmdOYW1lIjoienp6LWNocmlzdG9mZXIiLCJ1c2VyVHlwZSI6Im1hY2hpbmUiLCJyb2xlcyI6WyJvcmcuYWRtaW4iLCJvcmcudXNlciJdLCJleHAiOjE1NTMyMzE4MTMsImF1ZCI6InVybjpjb25zdW1lciIsImlzcyI6InVybjphcGkiLCJzdWIiOiI1YzhiMzU0NTg5MjkwNDAwMTM5M2NmNzQifQ.L5pq9q9AKJimySHIcZXWNZCQWtvscKxL7u6V-hdUkSU'
+      },
+      json: true,
+      body: user
     }, (err, res, body) => {
-        if(err) reject(new Error(err.message));
-        resolve(body)
+      if (err) reject(new Error(err.message));
+      resolve(body)
     })
-    })
+  })
 }
 
+// Gets users from Google Sheet
 function migrateUsers(auth) {
   const sheets = google.sheets({
     version: 'v4',
@@ -130,49 +136,61 @@ function migrateUsers(auth) {
     })
   })
 }
-    
-function usersToJSON(rows) {
+
+// Regex users and returns properly formatted JSON object
+function usersToObj(rows) {
   let customers = []
   const regex = /(\W\w{2};?)(\w+@\w+\.com)(\W\w+;?$)/g
+  const phoneRegex = /(^1-)(\d{3}-\d{3}-\d{4})(\s(\w*))?/g
+
   return new Promise((resolve, reject) => {
     if (rows.length) {
 
       // Creates json object for each row in columns A-G
       rows.forEach((row) => {
-        let info = { name: `${row[0]} ${row[1]}`, email: [], birthday: null, phones: []}
 
-        if(row[2].length > 0) {
-          info["email"].push({
+        let info = {
+          name: `${row[0]} ${row[1]}`,
+          emails: [],
+          birthdayAt: null,
+          phones: [],
+          custom: {
+            customerTypeStr: null
+          }
+        }
+
+        if (row[2].length > 0) {
+          info["emails"].push({
             email: row[2].replace(regex, "$2")
           })
         }
-    
+
         // Birthday to ISO 8601
-        if(row[3].length > 0) {
+        if (row[3].length > 0) {
           date = new Date(row[3]);
-          info["birthday"] = date.toISOString();
-        } 
-    
+          info["birthdayAt"] = date.toISOString();
+        }
+
         // Formats phone numbers
-        if(row[4].length > 0) {
+        if (row[4].length > 0) {
           info["phones"].push({
             type: "home",
-            phone: row[4]
+            phone: row[4].replace(phoneRegex, "$2")
           });
         }
-    
-        if(row[5].length > 0) {
+
+        if (row[5].length > 0) {
           info["phones"].push({
             type: "work",
-            phone: row[5]
-          }); 
+            phone: row[5].replace(phoneRegex, "$2")
+          });
         }
-        customers.push({
-          name: info.name,
-          emails: info.email,
-          birthdayAt: info.birthday,
-          phones: info.phones
-        })
+
+        if (row[6] !== undefined) {
+          info["custom"]["customerTypeStr"] = row[6]
+        }
+
+        customers.push(info)
       });
     } else {
       reject(new Error('No data found.'));
